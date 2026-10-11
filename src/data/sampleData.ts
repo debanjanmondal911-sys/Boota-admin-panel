@@ -117,12 +117,13 @@ export const sampleProducts: Product[] = [
 export const sampleOrders: Order[] = [
   {
     id: 'ORD-9842',
+    customerId: 'CUST-104',
     customerName: 'Ananya Singhania',
     customerEmail: 'ananya.singhania@gmail.com',
     customerPhone: '+91 98201 44589',
     orderStatus: 'confirmed',
     paymentStatus: 'paid',
-    paymentMethod: 'razorpay',
+    paymentMethod: 'razorpay_upi',
     subtotal: 9890,
     shippingFee: 0,
     discount: 500,
@@ -131,6 +132,7 @@ export const sampleOrders: Order[] = [
     total: 9390,
     items: [
       {
+        id: 'item-102',
         productId: 'prod-102',
         productTitle: 'Gulnar Pure Silk Zari Lehenga Set',
         productImage: '/src/assets/images/boota_lehenga_maroon_1791696710709.jpg',
@@ -145,6 +147,7 @@ export const sampleOrders: Order[] = [
     shippingAddress: {
       fullName: 'Ananya Singhania',
       phone: '+91 98201 44589',
+      email: 'ananya.singhania@gmail.com',
       addressLine1: 'Bungalow 14, Altamount Road',
       addressLine2: 'Cumballa Hill',
       city: 'Mumbai',
@@ -167,12 +170,14 @@ export const sampleCustomers: Customer[] = [
     phone: '+91 98201 44589',
     city: 'Mumbai',
     state: 'Maharashtra',
+    pincode: '400026',
+    registeredDate: '2026-08-15',
     tier: 'Royal VIP',
     totalOrders: 3,
     totalSpent: 28470,
     lastOrderDate: '10 Oct 2026',
-    childAgeGroup: '2-3 Years (Daughter: Tara)',
-    notes: 'High-profile patron. Prefers royal maroon and ivory tones. Requests premium gift box packaging with silk ribbon.'
+    returnCount: 0,
+    notes: 'Child Age: 2-3Y (Daughter: Tara). High-profile patron. Prefers royal maroon and ivory tones. Requests premium gift box packaging with silk ribbon.'
   }
 ];
 
@@ -181,7 +186,7 @@ export const sampleCoupons: Coupon[] = [
     id: 'coup-1',
     code: 'FESTIVE500',
     description: 'Flat ₹500 off on festive orders above ₹4,999',
-    discountType: 'fixed',
+    discountType: 'fixed_amount',
     discountValue: 500,
     minOrderValue: 4999,
     startDate: '2026-10-01',
@@ -202,6 +207,7 @@ export const sampleBanners: CMSBanner[] = [
     imageUrl: '/src/assets/images/boota_banner_festive_1791696746200.jpg',
     ctaText: 'Explore Royal Edit',
     ctaLink: '/collections/boys-festive',
+    position: 'hero_primary',
     displayOrder: 1,
     isActive: true
   }
