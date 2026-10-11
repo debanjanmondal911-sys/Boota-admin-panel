@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Search,
   Bell,
@@ -8,9 +8,14 @@ import {
   AlertTriangle,
   Package,
   Sparkles,
-  X
+  X,
+  LogOut,
+  User,
+  Shield,
+  ChevronDown
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminDataContext';
+import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
   activeModule: string;
@@ -19,8 +24,10 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeModule, onNavigate, onOpenStorefront }) => {
-  const { orders, products, returns, resetToDefaults, exportDatabaseJson, showToast } = useAdmin();
+  const { orders, products, returns, exportDatabaseJson } = useAdmin();
+  const { currentUser, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchModal, setShowSearchModal] = useState(false);
 
@@ -185,15 +192,79 @@ export const Header: React.FC<HeaderProps> = ({ activeModule, onNavigate, onOpen
           <Download className="w-4 h-4" />
         </button>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-2 pl-2 border-l border-stone-200">
-          <div className="w-7 h-7 rounded-full bg-[#962949] text-white text-xs font-bold flex items-center justify-center shadow-xs">
-            B
-          </div>
-          <div className="hidden lg:block text-left">
-            <p className="text-xs font-bold text-stone-800 leading-none">Store Admin</p>
-            <p className="text-[10px] text-[#962949] font-medium leading-none mt-0.5">Boota Atelier</p>
-          </div>
+        {/* User Profile & Logout Popover */}
+        <div className="relative pl-2 border-l border-stone-200">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-2 p-1 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer group"
+          >
+            <div className="w-7 h-7 rounded-full bg-[#962949] text-white text-xs font-bold flex items-center justify-center shadow-xs ring-1 ring-[#F3D0D9]">
+              {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+            </div>
+            <div className="hidden lg:block text-left">
+              <p className="text-xs font-bold text-stone-800 leading-none group-hover:text-[#962949] transition-colors">
+                {currentUser?.name || 'Administrator'}
+              </p>
+              <p className="text-[10px] text-[#962949] font-medium leading-none mt-0.5">
+                {currentUser?.roleLabel || 'Boota Atelier'}
+              </p>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 transition-transform" />
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-[#F3D0D9] rounded-xl shadow-xl z-50 p-3 animate-in fade-in zoom-in-95 duration-100">
+              <div className="pb-3 border-b border-stone-100 flex items-start gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-[#962949] text-white text-sm font-bold flex items-center justify-center shrink-0">
+                  {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-stone-900 truncate">
+                    {currentUser?.name || 'Admin'}
+                  </p>
+                  <p className="text-[11px] text-stone-500 truncate font-mono">
+                    {currentUser?.email || 'admin@boota.com'}
+                  </p>
+                  <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-[#FDF2F4] text-[#962949] rounded text-[10px] font-semibold border border-[#F3D0D9]">
+                    <Shield className="w-2.5 h-2.5" />
+                    <span>{currentUser?.roleLabel || 'Super Admin'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="py-2 space-y-1 text-xs">
+                {currentUser?.lastLogin && (
+                  <div className="px-2 py-1 text-[10px] text-stone-400">
+                    Last session: {currentUser.lastLogin}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    onNavigate('settings');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-stone-700 hover:text-[#962949] hover:bg-[#FDF2F4] rounded-lg transition-colors cursor-pointer text-left"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Security & Passkey Settings</span>
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-stone-100">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition-colors cursor-pointer text-left text-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Log Out of Workstation</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -10,9 +10,16 @@ import {
   RotateCcw,
   Download,
   Upload,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  Shield,
+  KeyRound,
+  UserCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminDataContext';
+import { useAuth } from '../context/AuthContext';
 import { StoreSettings } from '../types/admin';
 
 export const SettingsView: React.FC = () => {
@@ -30,6 +37,38 @@ export const SettingsView: React.FC = () => {
   const [formData, setFormData] = useState<StoreSettings>({ ...settings });
   const [importJsonText, setImportJsonText] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
+
+  // Auth & Security state
+  const { currentUser, changePassword, accountsList } = useAuth();
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passError, setPassError] = useState<string | null>(null);
+  const [passSuccess, setPassSuccess] = useState<string | null>(null);
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassError(null);
+    setPassSuccess(null);
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setPassError('All password fields are required.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPassError('New passkey and confirmation do not match.');
+      return;
+    }
+    const res = changePassword(oldPassword, newPassword);
+    if (res.success) {
+      setPassSuccess('Passkey successfully changed! Use your new passkey on future logins.');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      showToast('Administrator passkey updated successfully.');
+    } else {
+      setPassError(res.error || 'Failed to update passkey.');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,6 +362,133 @@ export const SettingsView: React.FC = () => {
                 onChange={e => setFormData({ ...formData, whatsappDispatchAlerts: e.target.checked })}
                 className="w-4 h-4 accent-[#962949] rounded"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 6: Atelier Administrator Security & Passkeys */}
+        <div className="bg-white rounded-xl border border-stone-200 shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#962949]" />
+              <h3 className="text-sm font-bold text-stone-900">Administrator Security & Credentials</h3>
+            </div>
+            <span className="px-2.5 py-0.5 bg-[#FDF2F4] text-[#962949] border border-[#F3D0D9] rounded text-[11px] font-bold">
+              Active: {currentUser?.roleLabel || 'Super Admin'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Active Account Details */}
+            <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-full bg-[#962949] text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                  {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-stone-900">{currentUser?.name}</h4>
+                  <p className="text-[11px] text-stone-500 font-mono">{currentUser?.email}</p>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-stone-200/60 text-[11px] space-y-1.5 text-stone-600">
+                <div className="flex justify-between">
+                  <span>Assigned Role:</span>
+                  <span className="font-semibold text-stone-800">{currentUser?.roleLabel}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Last Authenticated:</span>
+                  <span className="font-semibold text-stone-800">{currentUser?.lastLogin || 'Current session'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Security Token:</span>
+                  <span className="font-mono text-[10px] text-stone-400">SHA-256 (Session Encrypted)</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-stone-200/60">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400 block mb-1">
+                  Registered Atelier Workstations
+                </span>
+                <div className="space-y-1">
+                  {accountsList.map(acc => (
+                    <div
+                      key={acc.email}
+                      className="flex items-center justify-between text-[11px] p-1.5 rounded bg-white border border-stone-200/60"
+                    >
+                      <span className="font-medium text-stone-700">{acc.name}</span>
+                      <span className="text-[10px] text-[#962949] font-mono">{acc.email}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Change Password Form */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800">
+                <KeyRound className="w-3.5 h-3.5 text-[#962949]" />
+                <span>Update Administrator Passkey</span>
+              </div>
+
+              {passError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs">
+                  {passError}
+                </div>
+              )}
+
+              {passSuccess && (
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-xs flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{passSuccess}</span>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-700 mb-1">Current Passkey</label>
+                  <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={e => setOldPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    className="w-full p-2 border border-stone-300 rounded-lg text-xs outline-none focus:border-[#962949]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-700 mb-1">New Passkey (min 6 characters)</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Enter new strong password"
+                    className="w-full p-2 border border-stone-300 rounded-lg text-xs outline-none focus:border-[#962949]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-stone-700 mb-1">Confirm New Passkey</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="w-full p-2 border border-stone-300 rounded-lg text-xs outline-none focus:border-[#962949]"
+                  />
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handlePasswordChange}
+                    className="w-full py-2 bg-[#962949] hover:bg-[#7E1F3B] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Apply New Passkey</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

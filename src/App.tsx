@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { AdminProvider, useAdmin } from './context/AdminDataContext';
+import { AdminLoginView } from './components/AdminLoginView';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
@@ -18,9 +20,14 @@ import { StorefrontPreviewModal } from './components/StorefrontPreviewModal';
 import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 const AdminAppContent: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [activeModule, setActiveModule] = useState<string>('dashboard');
   const [isStorefrontModalOpen, setIsStorefrontModalOpen] = useState(false);
   const { toast } = useAdmin();
+
+  if (!isAuthenticated) {
+    return <AdminLoginView />;
+  }
 
   const renderModuleView = () => {
     switch (activeModule) {
@@ -98,8 +105,10 @@ const AdminAppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <AdminProvider>
-      <AdminAppContent />
-    </AdminProvider>
+    <AuthProvider>
+      <AdminProvider>
+        <AdminAppContent />
+      </AdminProvider>
+    </AuthProvider>
   );
 }

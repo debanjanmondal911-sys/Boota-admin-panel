@@ -12,9 +12,11 @@ import {
   Star,
   BarChart3,
   SlidersHorizontal,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminDataContext';
+import { useAuth } from '../context/AuthContext';
 import { BootaLogo } from './BootaLogo';
 
 interface SidebarProps {
@@ -25,6 +27,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeModule, onNavigate, onOpenStorefront }) => {
   const { orders, products, returns, reviews } = useAdmin();
+  const { currentUser, logout } = useAuth();
 
   const pendingOrdersCount = orders.filter(o => o.orderStatus === 'confirmed' || o.orderStatus === 'processing').length;
   const lowStockCount = products.flatMap(p => p.variants.filter(v => v.stock <= v.lowStockThreshold)).length;
@@ -110,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeModule, onNavigate, onOp
       </nav>
 
       {/* Footer Storefront Link Card */}
-      <div className="p-4 border-t border-[#F3D0D9]/80 bg-[#FDF8F9]">
+      <div className="p-4 border-t border-[#F3D0D9]/80 bg-[#FDF8F9] space-y-3">
         <div className="p-3 bg-white rounded-lg border border-[#F3D0D9] shadow-xs">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold text-[#962949]">Customer Website</span>
@@ -125,6 +128,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeModule, onNavigate, onOp
           >
             <span>View Live Storefront</span>
             <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Current Admin Session & Logout */}
+        <div className="pt-1 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-[#962949] text-white text-xs font-bold flex items-center justify-center shrink-0">
+              {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-stone-800 truncate leading-none">
+                {currentUser?.name || 'Admin'}
+              </p>
+              <p className="text-[10px] text-stone-500 truncate leading-none mt-1">
+                {currentUser?.roleLabel || 'Super Admin'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+            title="Log out of admin session"
+          >
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
