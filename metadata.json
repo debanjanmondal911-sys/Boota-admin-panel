@@ -1,0 +1,6 @@
+{
+  "name": "Boota Admin Panel - Luxury Indian Festive Kidswear",
+  "description": "Executive operations, product catalog, inventory matrix, order fulfillment, returns, customer profiles, CMS, promotions, and analytics portal for Boota Luxury Indian Festive Kidswear.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
