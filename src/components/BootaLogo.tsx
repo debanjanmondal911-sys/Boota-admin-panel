@@ -70,7 +70,7 @@ export const BootaLogo: React.FC<BootaLogoProps> = ({
         className={`${heightClass} w-auto object-contain shrink-0`}
       />
       {showSubtitle && (
-        <div className="flex flex-col border-l border-[#F3D0D9] pl-2.5">
+        <div className={`flex flex-col border-l ${inverted ? 'border-white/40' : 'border-[#F3D0D9]'} pl-2.5`}>
           <span
             className={`text-[10px] uppercase font-bold tracking-[0.2em] leading-tight ${
               inverted ? 'text-white' : 'text-[#962949]'

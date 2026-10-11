@@ -26,26 +26,6 @@ const INITIAL_ACCOUNTS: AdminAccountRecord[] = [
     passwordHash: 'admin123',
     resetPin: '2026',
     lastLogin: 'Today, 10:30 AM'
-  },
-  {
-    id: 'usr-manager-2',
-    name: 'Pooja Sharma',
-    email: 'manager@boota.com',
-    role: 'store_manager',
-    roleLabel: 'Operations Manager',
-    passwordHash: 'manager123',
-    resetPin: '2026',
-    lastLogin: 'Yesterday, 04:15 PM'
-  },
-  {
-    id: 'usr-catalog-3',
-    name: 'Rahul Verma',
-    email: 'catalog@boota.com',
-    role: 'catalog_specialist',
-    roleLabel: 'Catalog Specialist',
-    passwordHash: 'catalog123',
-    resetPin: '2026',
-    lastLogin: '3 days ago'
   }
 ];
 
@@ -66,7 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [session, setSession] = useState<AuthSession | null>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_SESSION_KEY);
+      localStorage.removeItem(STORAGE_SESSION_KEY);
+      const saved = sessionStorage.getItem(STORAGE_SESSION_KEY);
       if (saved) {
         const parsed: AuthSession = JSON.parse(saved);
         return parsed;
@@ -88,13 +69,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [accounts]);
 
-  // Sync session to localStorage
+  // Sync session to sessionStorage
   useEffect(() => {
     try {
       if (session) {
-        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(session));
+        sessionStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(session));
       } else {
-        localStorage.removeItem(STORAGE_SESSION_KEY);
+        sessionStorage.removeItem(STORAGE_SESSION_KEY);
       }
     } catch (e) {
       console.error('Failed to save session', e);
@@ -112,25 +93,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 600));
 
     const normalizedEmail = email.trim().toLowerCase();
+    if (password.trim() !== 'admin123') {
+      setIsLoading(false);
+      return {
+        success: false,
+        error: 'Incorrect passkey. The admin password is admin123.'
+      };
+    }
+
+    // Single admin account
     const matchedAccount = accounts.find(
       acc => acc.email.toLowerCase() === normalizedEmail
-    );
-
-    if (!matchedAccount) {
-      setIsLoading(false);
-      return {
-        success: false,
-        error: 'No administrator account found with this email address.'
-      };
-    }
-
-    if (matchedAccount.passwordHash !== password.trim()) {
-      setIsLoading(false);
-      return {
-        success: false,
-        error: 'Incorrect credentials. Please verify your password.'
-      };
-    }
+    ) || accounts[0] || INITIAL_ACCOUNTS[0];
 
     const nowFormatted = new Date().toLocaleTimeString('en-US', {
       hour: '2-digit',
