@@ -12,7 +12,9 @@ import {
   LogOut,
   User,
   Shield,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminDataContext';
 import { useAuth } from '../context/AuthContext';
@@ -60,8 +62,28 @@ export const Header: React.FC<HeaderProps> = ({ activeModule, onNavigate, onOpen
 
   return (
     <header className="h-16 bg-white border-b border-[#F3D0D9]/80 px-6 flex items-center justify-between sticky top-0 z-30">
-      {/* Module Title & Breadcrumb */}
+      {/* Module Title & Navigation History Controls */}
       <div className="flex items-center gap-3">
+        {/* Back and Forward Controls */}
+        <div className="flex items-center gap-0.5 border border-stone-200 rounded-lg p-0.5 bg-stone-50">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="p-1 text-stone-500 hover:text-[#962949] hover:bg-white rounded transition-colors cursor-pointer"
+            title="Go Back (Browser Back - Alt + Left Arrow)"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => window.history.forward()}
+            className="p-1 text-stone-500 hover:text-[#962949] hover:bg-white rounded transition-colors cursor-pointer"
+            title="Go Forward (Browser Forward - Alt + Right Arrow)"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-widest text-[#962949] font-bold">Boota</span>
           <span className="text-stone-300">/</span>

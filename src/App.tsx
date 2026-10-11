@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AdminProvider, useAdmin } from './context/AdminDataContext';
 import { AdminLoginView } from './components/AdminLoginView';
@@ -19,11 +19,71 @@ import { SettingsView } from './components/SettingsView';
 import { StorefrontPreviewModal } from './components/StorefrontPreviewModal';
 import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
+const VALID_MODULES = [
+  'dashboard',
+  'products',
+  'inventory',
+  'orders',
+  'returns',
+  'customers',
+  'categories',
+  'coupons',
+  'cms',
+  'reviews',
+  'reports',
+  'settings'
+];
+
+const getModuleFromLocation = (): string => {
+  if (typeof window === 'undefined') return 'dashboard';
+  const raw = window.location.hash.replace(/^#\/?/, '').toLowerCase().trim();
+  return VALID_MODULES.includes(raw) ? raw : 'dashboard';
+};
+
 const AdminAppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [activeModule, setActiveModule] = useState<string>('dashboard');
+  const [activeModule, setActiveModule] = useState<string>(() => getModuleFromLocation());
   const [isStorefrontModalOpen, setIsStorefrontModalOpen] = useState(false);
   const { toast } = useAdmin();
+
+  // Listen to browser Back/Forward navigation (popstate & hashchange)
+  useEffect(() => {
+    const handleNavigationChange = () => {
+      // If modal was open and user pressed browser Back, close the modal
+      setIsStorefrontModalOpen(false);
+      const targetModule = getModuleFromLocation();
+      setActiveModule(targetModule);
+    };
+
+    window.addEventListener('popstate', handleNavigationChange);
+    window.addEventListener('hashchange', handleNavigationChange);
+
+    // Prime the initial URL in browser history so the Back button is active
+    if (!window.location.hash || !VALID_MODULES.includes(window.location.hash.replace(/^#\/?/, ''))) {
+      window.history.replaceState({ module: 'dashboard' }, '', '#/dashboard');
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handleNavigationChange);
+      window.removeEventListener('hashchange', handleNavigationChange);
+    };
+  }, []);
+
+  const navigateTo = (module: string) => {
+    if (module === activeModule && !isStorefrontModalOpen) return;
+    setIsStorefrontModalOpen(false);
+    setActiveModule(module);
+    window.history.pushState({ module }, '', `/#/${module}`);
+  };
+
+  const handleOpenStorefront = () => {
+    setIsStorefrontModalOpen(true);
+    window.history.pushState({ modal: 'storefront', module: activeModule }, '', window.location.hash);
+  };
+
+  const handleCloseStorefront = () => {
+    setIsStorefrontModalOpen(false);
+  };
 
   if (!isAuthenticated) {
     return <AdminLoginView />;
@@ -32,7 +92,7 @@ const AdminAppContent: React.FC = () => {
   const renderModuleView = () => {
     switch (activeModule) {
       case 'dashboard':
-        return <DashboardView onNavigate={setActiveModule} />;
+        return <DashboardView onNavigate={navigateTo} />;
       case 'products':
         return <ProductsView />;
       case 'inventory':
@@ -56,7 +116,7 @@ const AdminAppContent: React.FC = () => {
       case 'settings':
         return <SettingsView />;
       default:
-        return <DashboardView onNavigate={setActiveModule} />;
+        return <DashboardView onNavigate={navigateTo} />;
     }
   };
 
@@ -65,16 +125,16 @@ const AdminAppContent: React.FC = () => {
       {/* Sidebar Navigation */}
       <Sidebar
         activeModule={activeModule}
-        onNavigate={setActiveModule}
-        onOpenStorefront={() => setIsStorefrontModalOpen(true)}
+        onNavigate={navigateTo}
+        onOpenStorefront={handleOpenStorefront}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
         <Header
           activeModule={activeModule}
-          onNavigate={setActiveModule}
-          onOpenStorefront={() => setIsStorefrontModalOpen(true)}
+          onNavigate={navigateTo}
+          onOpenStorefront={handleOpenStorefront}
         />
 
         <main className="flex-1 pb-16">
@@ -85,7 +145,7 @@ const AdminAppContent: React.FC = () => {
       {/* Live Storefront Modal */}
       <StorefrontPreviewModal
         isOpen={isStorefrontModalOpen}
-        onClose={() => setIsStorefrontModalOpen(false)}
+        onClose={handleCloseStorefront}
       />
 
       {/* Global Toast Notification */}
